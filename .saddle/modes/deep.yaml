@@ -1,0 +1,26 @@
+name: deep
+pipeline:
+  enabled: true
+  order:
+    - spec
+    - design
+    - develop
+spec:
+  enabled: true
+design:
+  enabled: true
+  deep_loop: true
+  max_iters: 14
+  prompt_profile: full
+develop:
+  enabled: true
+  deep_loop: true
+  max_iters: 16
+  prompt_profile: full
+agent_selection:
+  strategy: balanced
+  custom_roles: []
+thresholds:
+  min_gap_delta: 0.03
+  convergence_rounds: 3
+  handoff_target: 0.9

@@ -1,0 +1,2 @@
+"""Collaboration mode configuration modules."""
+

@@ -1,0 +1,8 @@
+role_id: designteam-interaction-designer
+summary: 关注任务主路径与异常路径的交互分层
+method_hints:
+  - user_journey_map
+  - state_transition
+primary_outputs:
+  - flow_diagram
+  - interaction_rules

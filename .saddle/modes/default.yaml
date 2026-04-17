@@ -1,0 +1,32 @@
+name: default
+pipeline:
+  enabled: true
+  order:
+  - spec
+  - design
+  - develop
+spec:
+  enabled: true
+design:
+  enabled: true
+  deep_loop: false
+  max_iters: 100
+  prompt_profile: full
+develop:
+  enabled: true
+  deep_loop: false
+  max_iters: 100
+  prompt_profile: full
+agent_selection:
+  strategy: minimal
+  custom_roles: []
+thresholds:
+  min_gap_delta: 0.05
+  convergence_rounds: 2.0
+  handoff_target: 0.85
+role_mindsets: {}
+tool_policy:
+  enable_web_search: true
+  enable_shell: true
+  enable_subagent: true
+  risk_level: balanced

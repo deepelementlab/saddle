@@ -1,0 +1,26 @@
+name: fast
+pipeline:
+  enabled: true
+  order:
+    - spec
+    - design
+    - develop
+spec:
+  enabled: true
+design:
+  enabled: true
+  deep_loop: false
+  max_iters: 12
+  prompt_profile: compact
+develop:
+  enabled: true
+  deep_loop: false
+  max_iters: 12
+  prompt_profile: compact
+agent_selection:
+  strategy: minimal
+  custom_roles: []
+thresholds:
+  min_gap_delta: 0.08
+  convergence_rounds: 1
+  handoff_target: 0.8

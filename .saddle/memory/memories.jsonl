@@ -1,0 +1,2 @@
+{"id": "dfb2ccf2-b3f7-4680-bf4c-cb00167b147c", "group_id": "e2e-group", "user_id": "tester", "role": "user", "content": "remember that I prefer dark mode", "timestamp": 1776412650777, "memory_type": "episodic_memory"}
+{"id": "2799b00d-0d43-41f8-acb1-d7947e1e7793", "group_id": "e2e-group", "user_id": "tester", "role": "assistant", "content": "saved preference: dark mode", "timestamp": 1776412650777, "memory_type": "episodic_memory"}

@@ -1,0 +1,8 @@
+{
+  "name": "saddle-memory",
+  "version": "0.1.0",
+  "description": "Saddle memory plugin for Claude Code with automatic save and recall",
+  "author": {
+    "name": "Saddle Team"
+  }
+}

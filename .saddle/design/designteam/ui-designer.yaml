@@ -1,0 +1,8 @@
+role_id: designteam-ui-designer
+summary: 关注信息架构、视觉层级与组件规范
+method_hints:
+  - layout_tokens
+  - visual_hierarchy
+primary_outputs:
+  - wireframe
+  - ui_guidelines

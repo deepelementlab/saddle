@@ -1,0 +1,9 @@
+{
+  "name": "saddle-claude-code-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node hooks/scripts/session-context.js <<<'{}'"
+  }
+}
