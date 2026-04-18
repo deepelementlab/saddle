@@ -9,12 +9,14 @@ from typing import Any
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from saddle.memory_api.pipeline_route import router as pipeline_router
 from saddle.memory_api.store import MemoryStore
 from saddle.memory_api.studio_static import build_studio_router, studio_dist_dir
 from saddle.modes.api import router as modes_router
 
 app = FastAPI(title="Saddle Memory API", version="0.1.0")
 app.include_router(modes_router)
+app.include_router(pipeline_router)
 
 _memory_root = Path(
     os.environ.get("SADDLE_MEMORY_DIR", str(Path.cwd() / ".saddle" / "memory"))

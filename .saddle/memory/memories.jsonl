@@ -1,2 +1,6 @@
 {"id": "dfb2ccf2-b3f7-4680-bf4c-cb00167b147c", "group_id": "e2e-group", "user_id": "tester", "role": "user", "content": "remember that I prefer dark mode", "timestamp": 1776412650777, "memory_type": "episodic_memory"}
 {"id": "2799b00d-0d43-41f8-acb1-d7947e1e7793", "group_id": "e2e-group", "user_id": "tester", "role": "assistant", "content": "saved preference: dark mode", "timestamp": 1776412650777, "memory_type": "episodic_memory"}
+{"id": "f8903f14-9c89-4cae-b8cf-cc2feecd5059", "group_id": "g1", "user_id": "u1", "role": "user", "content": "hello plugin", "timestamp": 1, "memory_type": "episodic_memory"}
+{"id": "fcad3cc8-e2f2-478b-be83-3bf5ac3ef4c2", "group_id": "g-search", "user_id": "u1", "role": "user", "content": "unique-keyword-xyz", "timestamp": 1, "memory_type": "episodic_memory"}
+{"id": "d1302965-7966-4f2a-aec8-5966167ce736", "group_id": "g1", "user_id": "u1", "role": "user", "content": "hello plugin", "timestamp": 1, "memory_type": "episodic_memory"}
+{"id": "9dfb38b7-dc90-4540-8086-3308bcceb8ce", "group_id": "g-search", "user_id": "u1", "role": "user", "content": "unique-keyword-xyz", "timestamp": 1, "memory_type": "episodic_memory"}

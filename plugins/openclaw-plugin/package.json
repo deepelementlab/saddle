@@ -1,9 +1,43 @@
 {
   "name": "@saddle/openclaw-plugin",
   "version": "0.1.0",
+  "description": "Saddle OpenClaw Plugin — persistent memory via saddle serve Memory API",
   "type": "module",
-  "main": "index.js",
+  "main": "./index.js",
   "bin": {
-    "saddle-openclaw-install": "bin/install.js"
+    "saddle-openclaw-install": "./bin/install.js",
+    "saddle-run-once": "./bin/run-once.js"
+  },
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "README.md",
+    "SKILL.md",
+    "examples/",
+    "bin/",
+    "src/"
+  ],
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "context-engine",
+    "memory",
+    "saddle",
+    "ai",
+    "agent"
+  ],
+  "scripts": {
+    "test": "node --test test/api.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "openclaw": {
+    "id": "saddle-ai-openclaw",
+    "kind": "context-engine",
+    "contextEngine": true
   }
 }

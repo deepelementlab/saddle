@@ -1,90 +1,101 @@
-# Saddle Collaboration Modes
+# Saddle 协作模式（Modes）
 
-Saddle supports low-cognitive-load configuration for collaboration modes:
+使用 **Claude Code / OpenClaw 插件** 对接 HTTP 时的 Memory API 约定见 **[`PLUGIN_HTTP.md`](./PLUGIN_HTTP.md)**。
 
-- File configuration: `.saddle/modes/*.yaml`
-- CLI temporary override: `--mode` + `--set key=value`
+**协作原语与 `collaboration_config`（分组、原语、简写、示例）**：[中文](./COLLABORATION_CONFIG.zh.md) · [English](./COLLABORATION_CONFIG.md)
 
-Default execution pipeline (with no additional configuration):
+Saddle 支持低认知成本的协作模式配置：
+
+- 文件配置：`.saddle/modes/*.yaml`
+- CLI 临时覆盖：`--mode` + `--set key=value`
+
+默认执行链路（无额外配置）：
 
 `spec -> design -> develop`
 
-## Quick Start
+## 快速使用
 
 ```bash
-saddle run "Implement an order system with audit logging"
+saddle run "实现带审计日志的订单系统"
+```
 
-Using the built-in fast mode:
+使用内置 fast 模式：
 
-bash
-saddle run "Implement an order system with audit logging" --mode fast
-Temporary override (without modifying files):
+```bash
+saddle run "实现带审计日志的订单系统" --mode fast
+```
 
-bash
-saddle run "Implement an order system with audit logging" \
+临时覆盖配置（不改文件）：
+
+```bash
+saddle run "实现带审计日志的订单系统" \
   --mode default \
   --set design.deep_loop=true \
   --set develop.max_iters=20 \
   --set agent_selection.strategy=balanced
-Top 5 Most Commonly Used Configuration Keys
-pipeline.order: Stage order, default ['spec','design','develop']
+```
 
-design.deep_loop: Enable deep loop for design phase
+## 最常用 5 个配置键
 
-design.max_iters: Maximum iterations for design deep loop
+- `pipeline.order`：阶段顺序，默认 `['spec','design','develop']`
+- `design.deep_loop`：是否启用 design 深循环
+- `design.max_iters`：design 深循环最大轮次
+- `develop.deep_loop`：是否启用 develop 深循环
+- `agent_selection.strategy`：角色选择策略（`minimal|balanced|custom`）
 
-develop.deep_loop: Enable deep loop for develop phase
+## 模式模板
 
-agent_selection.strategy: Agent selection strategy (minimal|balanced|custom)
+- `default.yaml`：零配置默认，适合一般任务
+- `fast.yaml`：快速交付，偏少轮次 + compact prompt
+- `deep.yaml`：高要求协作，默认开启 deep loop
 
-Mode Templates
-default.yaml: Zero-config default, suitable for general tasks
+## 查看与诊断（`saddle mode`）
 
-fast.yaml: Fast delivery, fewer iterations + compact prompt
+若未将 `saddle` 控制台脚本所在目录加入 `PATH`，可使用 **`python -m saddle`**（与 `saddle` 等价），例如：`python -m saddle mode list`。请用 **`python -m pip install -e .`** 与 **`python -m saddle`** 保持同一解释器；仓库根目录的 shim 支持在上级目录执行 `python -m saddle` 时仍能加载 `src/saddle`。
 
-deep.yaml: High-standard collaboration, deep loop enabled by default
-
-Viewing and Diagnostics (saddle mode)
-bash
-# List available mode names under .saddle/modes/
+```bash
+# 列出 .saddle/modes/ 下可用的模式名
 saddle mode list
 
-# Print merged full configuration (default cwd, default mode)
+# 打印合并后的完整配置（默认 cwd、模式 default）
 saddle mode show fast --project /path/to/repo
 
-# Validate configuration; exits with code 1 on error
+# 校验配置；有错误时退出码为 1
 saddle mode validate default --set pipeline.order=[spec,design,develop]
-List-type fields in --set must be written in bracket form, e.g., pipeline.order=[spec,develop].
+```
 
-Visual Configuration Panel (Saddle Studio)
-saddle/studio provides a Stripe-style visual configuration panel featuring:
+列表类字段在 `--set` 中需写成方括号形式，例如 `pipeline.order=[spec,develop]`。
 
-Welcome page (brand introduction, collaboration pipeline explanation)
+## 可视化配置面板（Saddle Studio）
 
-Basic mode configuration (spec/design/develop, pipeline.order)
+`saddle/studio` 提供 Stripe 风格的可视化配置面板，支持：
 
-Advanced configuration (agent mental models, tool strategies, thresholds)
+- Welcome 页（品牌介绍、协作链路说明）
+- 基础模式配置（`spec/design/develop`、`pipeline.order`）
+- 专业配置（角色思维模型、工具策略、阈值）
+- JSON/YAML 实时预览
+- 服务端校验与保存（写回 `.saddle/modes/*.yaml`）
 
-JSON/YAML live preview
+启动：
 
-Server-side validation and save (write back to .saddle/modes/*.yaml)
+**开发（Vite 热更新，默认端口 4173）：**
 
-Launch
-Development (Vite HMR, default port 4173):
-
-bash
+```bash
 cd saddle/studio
 npm install
 npm run dev
-Production (served by saddle serve after build, same port as API):
+```
 
-bash
+**发布（构建后由 `saddle serve` 托管，与 API 同端口）：**
+
+```bash
 cd saddle/studio
 npm install
 npm run build
 cd ..
 saddle serve
-# Open http://127.0.0.1:1995/ (or your specified host/port)
-Custom build output directory: saddle serve --studio-dir /path/to/dist or set the SADDLE_STUDIO_DIR environment variable.
+# 打开 http://127.0.0.1:1995/ （或你指定的 host/port）
+```
 
-text
+自定义构建输出目录：`saddle serve --studio-dir /path/to/dist` 或设置环境变量 `SADDLE_STUDIO_DIR`。
+

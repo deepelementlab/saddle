@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -32,6 +35,47 @@ def test_validate_invalid_pipeline_stage() -> None:
     cfg = resolve_mode(root, mode_name="default", overrides=["pipeline.order=[spec,unknown,develop]"])
     errors, _ = validate_mode_config(cfg)
     assert any("invalid stage" in e for e in errors)
+
+
+def test_cli_root_help_uses_prog_name_saddle() -> None:
+    runner = CliRunner()
+    r = runner.invoke(app, ["--help"], prog_name="saddle")
+    assert r.exit_code == 0
+    assert "Usage: saddle" in r.output
+
+
+def test_python_m_saddle_no_args_shows_help_exit_zero() -> None:
+    pkg = Path(__file__).resolve().parents[1]
+    env = {**os.environ, "PYTHONPATH": str(pkg / "src")}
+    r = subprocess.run(
+        [sys.executable, "-m", "saddle"],
+        capture_output=True,
+        text=True,
+        cwd=str(pkg),
+        env=env,
+        check=False,
+    )
+    assert r.returncode == 0
+    assert "Usage: saddle" in r.stdout
+    assert "run" in r.stdout
+    assert "/ ___|" in r.stdout
+
+
+def test_python_m_saddle_help() -> None:
+    pkg = Path(__file__).resolve().parents[1]
+    env = {**os.environ, "PYTHONPATH": str(pkg / "src")}
+    r = subprocess.run(
+        [sys.executable, "-m", "saddle", "--help"],
+        capture_output=True,
+        text=True,
+        cwd=str(pkg),
+        env=env,
+        check=False,
+    )
+    assert r.returncode == 0
+    assert "Usage: saddle" in r.stdout
+    assert "/ ___|" in r.stdout
+    assert "|____/" in r.stdout
 
 
 def test_cli_mode_list() -> None:

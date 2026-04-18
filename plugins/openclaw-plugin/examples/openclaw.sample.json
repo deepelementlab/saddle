@@ -1,0 +1,27 @@
+{
+  "plugins": {
+    "load": {
+      "paths": [
+        "/abs/path/to/saddle/plugins/openclaw-plugin"
+      ]
+    },
+    "allow": ["saddle-ai-openclaw"],
+    "slots": {
+      "contextEngine": "saddle-ai-openclaw",
+      "memory": "none"
+    },
+    "entries": {
+      "saddle-ai-openclaw": {
+        "enabled": true,
+        "config": {
+          "baseUrl": "http://127.0.0.1:1995",
+          "userId": "saddle-user",
+          "groupId": "saddle-default-group",
+          "topK": 5,
+          "memoryTypes": ["episodic_memory"],
+          "retrieveMethod": "hybrid"
+        }
+      }
+    }
+  }
+}

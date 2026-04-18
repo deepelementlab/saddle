@@ -1,9 +1,13 @@
 {
-  "name": "saddle-claude-code-plugin",
+  "name": "saddle-claude-code",
   "version": "0.1.0",
-  "private": true,
+  "description": "Saddle plugin for Claude Code — local memory via saddle serve",
   "type": "module",
+  "private": false,
   "scripts": {
-    "check": "node hooks/scripts/session-context.js <<<'{}'"
+    "test": "node --test test/saddle-api.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -26,7 +26,7 @@ dev = [
 ]
 
 [project.scripts]
-saddle = "saddle.cli:app"
+saddle = "saddle.cli:main"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["saddle"]
@@ -37,3 +37,4 @@ only-include = ["saddle"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+norecursedirs = [".git", "studio", "node_modules", "plugins"]

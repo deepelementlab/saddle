@@ -1,84 +1,211 @@
-function toText(content) {
-  if (typeof content === "string") return content;
-  if (Array.isArray(content)) return content.map((x) => (typeof x === "string" ? x : x?.text || "")).join("\n");
-  return "";
+/**
+ * Saddle ContextEngine — lifecycle hooks for OpenClaw.
+ */
+
+import { resolveConfig } from "./config.js";
+import { saveMemories } from "./api.js";
+import { toText } from "./messages.js";
+import { ContextAssembler } from "./subagent-assembler.js";
+import { convertMessage } from "./convert.js";
+import { isSessionResetPrompt } from "./messages.js";
+
+function isEphemeralSession(sessionKey) {
+  return sessionKey?.startsWith("temp:") || sessionKey?.startsWith("internal:");
 }
 
-async function search(cfg, query) {
-  const resp = await fetch(`${cfg.baseUrl}/api/v1/memories/search`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, top_k: cfg.topK, filters: { group_id: cfg.groupId } }),
-  });
-  if (!resp.ok) return [];
-  const data = await resp.json();
-  return data?.data?.memories || [];
+function collectLastUserTurn(messages) {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === "user") return messages.slice(i);
+  }
+  return [];
 }
 
-async function save(cfg, messages) {
-  await fetch(`${cfg.baseUrl}/api/v1/memories/group`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      group_id: cfg.groupId,
-      user_id: cfg.userId,
-      messages,
-      async_mode: true,
-    }),
-  });
-}
+/**
+ * @param {Object} pluginMeta - Plugin manifest (id, name, version)
+ * @param {Object} pluginConfig - Runtime plugin configuration
+ * @param {Object} logger - Logger instance
+ * @returns {Object} ContextEngine implementation
+ */
+export function createContextEngine(pluginMeta, pluginConfig, logger) {
+  const cfg = resolveConfig(pluginConfig);
+  const log = logger || { info: (...a) => console.log(...a), warn: (...a) => console.warn(...a) };
+  const L = `[${pluginMeta.id}]`;
+  const assembler = new ContextAssembler(cfg, log);
 
-export function createContextEngine(meta, pluginConfig, logger) {
-  const cfg = {
-    baseUrl: pluginConfig?.baseUrl || "http://127.0.0.1:1995",
-    userId: pluginConfig?.userId || "saddle-user",
-    groupId: pluginConfig?.groupId || "openclaw-default",
-    topK: Number(pluginConfig?.topK || 5),
-  };
-  const state = new Map();
+  log.info(`${L} ContextEngine config: baseUrl=${cfg.serverUrl}, userId=${cfg.userId}`);
+
+  const sessionState = new Map();
+  const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+
+  function pruneStaleSessionState() {
+    const now = Date.now();
+    for (const [key, state] of sessionState) {
+      if (now - (state.lastActiveTime || 0) > SESSION_TTL_MS) {
+        sessionState.delete(key);
+        log.info(`${L} pruned stale session state: ${key}`);
+      }
+    }
+  }
+
+  function initState() {
+    return {
+      turnCount: 0,
+      lastActiveTime: Date.now(),
+      savedUpTo: 0,
+    };
+  }
+
+  function ensureState(sessionKey) {
+    if (!sessionState.has(sessionKey)) {
+      sessionState.set(sessionKey, initState());
+    }
+    return sessionState.get(sessionKey);
+  }
+
   return {
-    info: { id: meta.id, name: meta.name, version: meta.version, ownsCompaction: false },
-    async bootstrap({ sessionKey }) {
-      state.set(sessionKey, { savedUpTo: 0, turn: 0 });
+    info: {
+      id: pluginMeta.id,
+      name: pluginMeta.name,
+      version: pluginMeta.version,
+      ownsCompaction: false,
+    },
+
+    async bootstrap({ sessionId, sessionKey }) {
+      pruneStaleSessionState();
+
+      try {
+        const response = await fetch(`${cfg.serverUrl}/health`, {
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!response.ok) {
+          log.warn(`${L} bootstrap: saddle serve unhealthy, status=${response.status}`);
+        }
+      } catch (err) {
+        log.warn(`${L} bootstrap: health check failed: ${err.message}`);
+      }
+
+      ensureState(sessionKey);
       return { bootstrapped: true };
     },
-    async ingest() {
+
+    async ingest({ sessionId, sessionKey, message }) {
+      if (message.isHeartbeat) {
+        return { ingested: false };
+      }
+      ensureState(sessionKey);
       return { ingested: true };
     },
-    async ingestBatch({ messages }) {
+
+    async ingestBatch({ sessionId, sessionKey, messages, isHeartbeat }) {
+      if (isHeartbeat) {
+        return { ingestedCount: 0 };
+      }
+      ensureState(sessionKey);
       return { ingestedCount: messages?.length || 0 };
     },
-    async assemble({ sessionKey, messages, prompt }) {
-      const query = toText(prompt) || toText([...messages].reverse().find((m) => m?.role === "user")?.content);
-      if (!query || query.length < 3) return { messages, estimatedTokens: 0 };
-      const hits = await search(cfg, query);
-      if (!hits.length) return { messages, estimatedTokens: 0 };
-      const context = hits
-        .slice(0, cfg.topK)
-        .map((h, i) => `[${i + 1}] ${(h.content || "").slice(0, 200)}`)
-        .join("\n");
-      logger.info?.(`[${meta.id}] assemble memories=${hits.length}`);
-      return { messages, estimatedTokens: Math.floor(context.length / 4), systemPromptAddition: `<memory>\n${context}\n</memory>` };
-    },
-    async afterTurn({ sessionKey, messages }) {
-      const s = state.get(sessionKey) || { savedUpTo: 0, turn: 0 };
-      s.turn += 1;
-      const delta = messages.slice(s.savedUpTo).filter((m) => m?.role === "user" || m?.role === "assistant");
-      if (delta.length) {
-        await save(
-          cfg,
-          delta.map((m) => ({ role: m.role, content: toText(m.content), timestamp: Date.now() }))
-        );
-        s.savedUpTo = messages.length;
+
+    async afterTurn({ sessionId, sessionKey, messages, prePromptMessageCount }) {
+      pruneStaleSessionState();
+
+      if (isEphemeralSession(sessionKey)) return;
+
+      const state = ensureState(sessionKey);
+
+      state.turnCount++;
+      state.lastActiveTime = Date.now();
+      if (state.savedUpTo > messages.length) {
+        state.savedUpTo = 0;
       }
-      state.set(sessionKey, s);
+
+      const sliceStart =
+        prePromptMessageCount !== undefined
+          ? Math.max(prePromptMessageCount, state.savedUpTo)
+          : state.savedUpTo || 0;
+
+      const newMessages =
+        sliceStart > 0 ? messages.slice(sliceStart) : collectLastUserTurn(messages);
+
+      if (newMessages.length === 0) return;
+
+      try {
+        const converted = newMessages
+          .filter((m) => m.role !== "toolResult" && m.role !== "tool")
+          .map(convertMessage)
+          .filter((m) => m.content);
+        if (converted.length === 0) return;
+
+        await saveMemories(cfg, {
+          userId: cfg.userId,
+          groupId: cfg.groupId,
+          messages: converted,
+        });
+        state.savedUpTo = messages.length;
+        log.info(`${L} afterTurn: saved ${converted.length} messages, turn=${state.turnCount}`);
+      } catch (err) {
+        log.warn(`${L} afterTurn: save failed: ${err.message}`);
+      }
     },
-    async compact() {
-      return { ok: true, compacted: false, reason: "host_compaction_preferred" };
+
+    async assemble({ sessionId, sessionKey, messages, tokenBudget, prompt }) {
+      pruneStaleSessionState();
+      const state = ensureState(sessionKey);
+      state.lastActiveTime = Date.now();
+
+      const query =
+        toText(prompt) || toText([...messages].reverse().find((m) => m.role === "user")?.content);
+
+      if (!query || query.length < 3) {
+        return { messages, estimatedTokens: 0 };
+      }
+
+      if (isSessionResetPrompt(query)) {
+        return { messages, estimatedTokens: 0 };
+      }
+
+      try {
+        const { context, memoryCount } = await assembler.assemble(query, messages, state.turnCount);
+        if (memoryCount === 0) {
+          return { messages, estimatedTokens: 0 };
+        }
+
+        log.info(`${L} assemble: retrieved ${memoryCount} memories`);
+        return {
+          messages,
+          estimatedTokens: Math.floor(context.length / 4),
+          systemPromptAddition: context,
+        };
+      } catch (err) {
+        log.warn(`${L} assemble: failed: ${err.message}`);
+        return { messages, estimatedTokens: 0 };
+      }
     },
+
+    async compact({ sessionId, sessionKey, tokenBudget, currentTokenCount }) {
+      const state = sessionState.get(sessionKey);
+      if (!state) {
+        return { ok: true, compacted: false, reason: "no session state" };
+      }
+
+      state.savedUpTo = 0;
+
+      const threshold = tokenBudget ? tokenBudget * 0.8 : 8000;
+      const overBudget = currentTokenCount && currentTokenCount > threshold;
+
+      return {
+        ok: true,
+        compacted: false,
+        reason: overBudget
+          ? `token count (${currentTokenCount}) exceeds 80% of budget (${tokenBudget}), host should compact`
+          : "within threshold",
+      };
+    },
+
     async dispose({ sessionKey } = {}) {
-      if (sessionKey) state.delete(sessionKey);
-      else state.clear();
+      if (sessionKey) {
+        sessionState.delete(sessionKey);
+      } else {
+        sessionState.clear();
+      }
     },
   };
 }

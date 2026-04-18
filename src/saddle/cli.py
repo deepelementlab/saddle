@@ -16,9 +16,19 @@ from saddle.pipeline.runner import PipelineRunner
 from saddle.orchestrator.team_service import TeamService
 from saddle.spec.service import SpecService
 
+# Root help only (no subcommand): shown above Typer/Rich panels.
+# Must match pyfiglet ``standard`` for "Saddle" (two consecutive "d" glyphs are distinct).
+_CLI_LOGO = """\
+ ____            _     _ _      
+/ ___|  __ _  __| | __| | | ___ 
+\\___ \\ / _` |/ _` |/ _` | |/ _ \\
+ ___) | (_| | (_| | (_| | |  __/
+|____/ \\__,_|\\__,_|\\__,_|_|\\___|
+"""
+
 app = typer.Typer(help="Saddle standalone runtime")
 
-mode_app = typer.Typer(help="Inspect and validate collaboration modes")
+mode_app = typer.Typer(help="Inspect and validate collaboration modes", no_args_is_help=True)
 
 
 @mode_app.command("list")
@@ -158,5 +168,34 @@ def finalize(team: str, session_id: str, text_file: str) -> None:
     typer.echo(json.dumps(result, ensure_ascii=False))
 
 
+def _print_root_cli_banner() -> None:
+    """ASCII logo for root-level ``--help`` / bare ``saddle`` invocation."""
+    try:
+        from rich.console import Console
+
+        Console(stderr=False).print(_CLI_LOGO.rstrip("\n"), style="bold cyan", highlight=False)
+    except Exception:
+        typer.echo(_CLI_LOGO.rstrip("\n"))
+
+
+def _is_root_help_invocation(argv: list[str]) -> bool:
+    tail = argv[1:]
+    return not tail or tail == ["--help"] or tail == ["-h"]
+
+
+def main() -> None:
+    """Entry point for the ``saddle`` console script and ``python -m saddle``."""
+    import sys
+
+    argv = list(sys.argv)
+    if len(argv) == 1:
+        argv.append("--help")
+    if _is_root_help_invocation(argv):
+        _print_root_cli_banner()
+        typer.echo("")
+    sys.argv = argv
+    app(prog_name="saddle")
+
+
 if __name__ == "__main__":
-    app()
+    main()

@@ -1,8 +1,9 @@
 {
-  "name": "saddle-memory",
+  "name": "saddle",
   "version": "0.1.0",
-  "description": "Saddle memory plugin for Claude Code with automatic save and recall",
+  "description": "Recall and store session context via Saddle Memory API (local saddle serve)",
   "author": {
-    "name": "Saddle Team"
-  }
+    "name": "Saddle"
+  },
+  "keywords": ["saddle", "memory", "context", "local"]
 }

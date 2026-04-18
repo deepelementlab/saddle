@@ -1,7 +1,7 @@
 {
-  "id": "saddle-openclaw-memory",
+  "id": "saddle-ai-openclaw",
   "name": "Saddle OpenClaw Plugin",
-  "description": "Context-engine based automatic memory recall and save for OpenClaw",
+  "description": "Long-term memory for OpenClaw through the Saddle Memory API (saddle serve)",
   "version": "0.1.0",
   "kind": "context-engine",
   "contextEngine": true,
@@ -9,10 +9,41 @@
   "configSchema": {
     "type": "object",
     "properties": {
-      "baseUrl": { "type": "string", "default": "http://127.0.0.1:1995" },
-      "userId": { "type": "string", "default": "saddle-user" },
-      "groupId": { "type": "string", "default": "openclaw-default" },
-      "topK": { "type": "integer", "default": 5 }
+      "baseUrl": {
+        "type": "string",
+        "description": "Saddle serve base URL (no trailing slash)",
+        "default": "http://127.0.0.1:1995"
+      },
+      "userId": {
+        "type": "string",
+        "description": "User id for memory rows",
+        "default": "saddle-user"
+      },
+      "groupId": {
+        "type": "string",
+        "description": "Group id for shared memory",
+        "default": "saddle-default-group"
+      },
+      "topK": {
+        "type": "integer",
+        "description": "Maximum memories to retrieve per assemble",
+        "default": 5
+      },
+      "memoryTypes": {
+        "type": "array",
+        "description": "Saddle local store uses episodic_memory only",
+        "items": {
+          "type": "string",
+          "enum": ["episodic_memory"]
+        },
+        "default": ["episodic_memory"]
+      },
+      "retrieveMethod": {
+        "type": "string",
+        "description": "Ignored by Saddle (keyword-style search only); kept for config compatibility",
+        "enum": ["keyword", "vector", "hybrid", "rrf", "agentic"],
+        "default": "hybrid"
+      }
     }
   }
 }

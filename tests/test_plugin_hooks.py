@@ -78,18 +78,24 @@ def test_claude_inject_memories_hook(tmp_path: Path) -> None:
         hook_env["SADDLE_BASE_URL"] = base
         r = subprocess.run(
             ["node", str(HOOKS / "inject-memories.js")],
-            input=json.dumps({"prompt": "dark mode", "cwd": "/proj"}),
+            input=json.dumps(
+                {"prompt": "please remember my dark mode preference", "cwd": "/proj"}
+            ),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             env=hook_env,
             cwd=str(SADDLE_ROOT),
             timeout=15,
             check=False,
         )
         assert r.returncode == 0, r.stderr
+        assert (r.stdout or "").strip(), r.stderr
         out = json.loads(r.stdout)
-        assert out.get("continue") is True
         assert "systemMessage" in out
+        assert out.get("hookSpecificOutput", {}).get("hookEventName") == "UserPromptSubmit"
+        assert "additionalContext" in (out.get("hookSpecificOutput") or {})
     finally:
         proc.terminate()
         try:
@@ -154,14 +160,18 @@ def test_claude_store_memories_hook(tmp_path: Path) -> None:
             input=json.dumps({"transcript_path": str(transcript), "cwd": "/proj"}),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             env=hook_env,
             cwd=str(SADDLE_ROOT),
             timeout=15,
             check=False,
         )
         assert r.returncode == 0, r.stderr
+        assert (r.stdout or "").strip(), r.stderr
         out = json.loads(r.stdout)
-        assert out.get("continue") is True
+        assert "systemMessage" in out
+        assert "saved" in (out.get("systemMessage") or "").lower()
     finally:
         proc.terminate()
         try:
