@@ -22,6 +22,9 @@
 
 Saddle is a development framework **centered on collaboration paradigms**. It splits delivery into three stages that can evolve independently or run as a pipeline: **`spec` → `design` → `develop`**. Each stage is shaped by a **Mode**: pipeline order, deep-loop settings and iteration caps, agent selection strategy, thresholds, tool policy, optional role mindsets, and optional **`collaboration_config`** (groups and primitives). That **pins down “how the team collaborates” in the repo** instead of scattering conventions across chat logs.
 
+<img width="2800" height="1380" alt="jimeng-2026-04-18-8122-去掉周边的线条和箭头指向，只保留马的形象" src="https://github.com/user-attachments/assets/615fb1fd-c640-43df-b7cd-c3d2c64e3900" />
+
+
 The framework ships with orchestration protocols and capability tables for a **standard design team (`designteam`)** and a **standard engineering team (`clawteam`)**. With a **short natural-language requirement**, the default path yields:
 
 - **Spec**: structured specification text, task breakdown, and acceptance checklist (written as Markdown + JSON; see “North Star bundle” below).
@@ -39,6 +42,8 @@ Together these form a **standard, relatively complete project development map** 
 | **Spec** | Clarify scope, split work, define acceptance | Spec body, task list, checklist, machine-readable metadata |
 | **Design** | Align and hand off across design roles | Selection result, deep-loop settings, **full orchestration prompt** (for an external agent) |
 | **Develop** | Land and close out engineering work | Same shape; team is **`clawteam`** |
+
+<img width="2000" height="1200" alt="Screenshot - 2026-04-18 21 03 01" src="https://github.com/user-attachments/assets/3b71a4e1-727d-44d9-a3a3-816a53ef52f8" />
 
 The **`saddle run`** JSON aggregates **timing and key metadata** per stage (`spec_dir` for spec; `selected_agents`, `deep_loop`, `max_iters` for design/develop). To get the **full `prompt` text** for design/develop directly, use **`saddle design`** / **`saddle develop`** (or call orchestration from your HTTP/plugin integration). **Directory- and file-level details** are in **[Outputs (North Star bundle, detailed)](#outputs-north-star-bundle-detailed)** at the end of this document.
 
