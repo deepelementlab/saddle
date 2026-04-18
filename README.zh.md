@@ -9,7 +9,7 @@
 </p>
 <p align="center">解耦规范、设计与实现，用可版本化的模式与内置团队编排，把一句需求铺成可执行的「北极星」路线图。</p>
 
-<p align="center"><a href="./README.en.md">English README</a></p>
+<p align="center"><a href="./README.md">English README</a></p>
 
 <p align="center">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT" /></a>
@@ -23,7 +23,14 @@
 
 ## Saddle 是什么
 
+
+
 Saddle 是一个**以协作范式为核心**的开发框架：它把软件交付拆成 **`spec`（规范）→ `design`（设计协作）→ `develop`（工程协作）** 三条可独立演进、又可按流水线串联的阶段。每一阶段由**模式（Mode）**描述：流水线顺序、深循环与轮次、角色选择策略、阈值、工具策略、角色思维补充，以及可选的 **`collaboration_config`**（分组与原语），从而在仓库里**固化「团队怎么协作」**，而不是把约定散落在聊天里。
+
+<!-- <img width="2573" height="761" alt="Screenshot - 2026-04-18 15 37 57" src="https://github.com/user-attachments/assets/a0b6868f-e43f-4424-8586-88f497bf9ae8" />  -->
+
+<!-- <img width="2401" height="1148" alt="Screenshot - 2026-04-17 23 40 20" src="https://github.com/user-attachments/assets/471b5b99-93be-4a01-8ec0-953b35dc5039" /> -->
+
 
 框架已内置**标准设计团队（designteam）**与**标准开发团队（clawteam）**的编排协议与能力表；用户只需输入**简短自然语言需求**，即可在默认链路下得到：
 
